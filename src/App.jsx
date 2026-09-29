@@ -12,6 +12,14 @@ const STEPS = [...sections.map((section) => ({ kind: 'section', section })), { k
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// ID só numérico (timestamp + 3 dígitos aleatórios), gerado uma vez por
+// preenchimento — usado tanto na planilha quanto para nomear os arquivos
+// anexados, associando cada arquivo à resposta que o enviou.
+function generateSubmissionId() {
+  const random = Math.floor(Math.random() * 900) + 100
+  return `${Date.now()}${random}`
+}
+
 function isVisible(field, answers) {
   if (!field.condition) return true
   const currentValue = answers[field.condition.field]
@@ -108,6 +116,7 @@ export default function App() {
   const [answers, setAnswers] = useState({})
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(false)
+  const [submissionId] = useState(generateSubmissionId)
   const [theme, setTheme] = useState(() => localStorage.getItem('dpx-theme') || 'light')
   const [fontScale, setFontScale] = useState(() => Number(localStorage.getItem('dpx-font-scale')) || 1)
 
@@ -186,7 +195,7 @@ export default function App() {
   }
 
   async function handleConfirm() {
-    await submitAnswers(answers)
+    await submitAnswers(answers, submissionId)
     setDone(true)
   }
 
@@ -242,6 +251,7 @@ export default function App() {
                 onChange={updateAnswer}
                 onNext={goNext}
                 onBack={stepIndex > 0 ? goBack : null}
+                submissionId={submissionId}
               />
             )}
 
@@ -310,7 +320,7 @@ function NavButtons({ onBack, onNext, nextLabel = 'Próximo' }) {
   )
 }
 
-function Screen({ section, fields, answers, errors, onChange, onNext, onBack }) {
+function Screen({ section, fields, answers, errors, onChange, onNext, onBack, submissionId }) {
   return (
     <div>
       <ScreenHeader title={section.title} />
@@ -322,6 +332,7 @@ function Screen({ section, fields, answers, errors, onChange, onNext, onBack }) 
           answers={answers}
           error={errors[field.id]}
           onChange={(value) => onChange(field.id, value)}
+          submissionId={submissionId}
         />
       ))}
       <NavButtons onBack={onBack} onNext={onNext} />

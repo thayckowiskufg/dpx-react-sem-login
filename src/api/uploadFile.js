@@ -24,7 +24,7 @@ function fileToBase64(file) {
   })
 }
 
-async function uploadOne(file) {
+async function uploadOne(file, { submissionId, driveFolder }) {
   const conteudoBase64 = await fileToBase64(file)
 
   const response = await fetch(SHEET_ENDPOINT, {
@@ -32,6 +32,8 @@ async function uploadOne(file) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({
       tipo: 'upload_arquivo',
+      idResposta: submissionId,
+      pasta: driveFolder,
       nome: file.name,
       mimeType: file.type,
       conteudoBase64,
@@ -51,10 +53,12 @@ async function uploadOne(file) {
 }
 
 // Envia um ou mais arquivos e retorna [{ name, url }]. Lança erro se algum upload falhar.
-export async function uploadFiles(files) {
+// "submissionId" nomeia o arquivo no Drive (associando ao id da resposta na
+// planilha) e "driveFolder" ('exames' ou 'videos') escolhe a pasta de destino.
+export async function uploadFiles(files, { submissionId, driveFolder }) {
   const uploaded = []
   for (const file of files) {
-    uploaded.push(await uploadOne(file))
+    uploaded.push(await uploadOne(file, { submissionId, driveFolder }))
   }
   return uploaded
 }

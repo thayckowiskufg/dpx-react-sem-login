@@ -18,7 +18,9 @@ import { DOG_BREEDS } from './breeds'
 //   radio       -> escolha única, poucas opções, exibidas como botões
 //   multiselect -> escolha única, várias opções, exibida como chips clicáveis
 //                  (apesar do nome, só permite selecionar 1 alternativa por vez)
-//   file        -> upload de arquivo(s), enviados direto ao Google Drive
+//   file        -> upload de arquivo(s), enviados ao Google Drive via Apps
+//                  Script (sem exigir login); usa "driveFolder" ('exames' ou
+//                  'videos') para escolher em qual pasta do Drive salvar
 //   country     -> select de país (base de dados da lib country-state-city)
 //   state       -> select de estado, filtrado pelo país escolhido em "dependsOn"
 //   city        -> select de cidade, filtrado pelo estado escolhido em "dependsOn"
@@ -313,6 +315,7 @@ export const sections = [
         label: 'Anexar arquivos dos resultados dos exames',
         type: 'file',
         multiple: true,
+        driveFolder: 'exames',
         accept: ['application/pdf', 'image/jpeg', 'image/png'],
         acceptAttr: '.pdf,.jpg,.jpeg,.png',
         acceptLabel: 'PDF, JPG ou PNG',
@@ -381,6 +384,7 @@ export const sections = [
         label: 'Anexar vídeos dos episódios',
         type: 'file',
         multiple: true,
+        driveFolder: 'videos',
         accept: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'],
         acceptAttr: '.mp4,.mov,.avi,.webm',
         acceptLabel: 'MP4, MOV, AVI ou WEBM',

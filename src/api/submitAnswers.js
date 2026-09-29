@@ -3,8 +3,13 @@
 // As respostas são enviadas para um Google Apps Script publicado como Web
 // App, que grava uma nova linha na planilha do Google Sheets. Os campos de
 // upload (exames e vídeos) já chegam aqui como { name, url } — o arquivo em
-// si foi enviado direto ao Google Drive pelo navegador (ver api/googleDrive.js)
-// no momento em que foi selecionado, então aqui só serializamos o link.
+// si já foi enviado ao Drive (via Apps Script, ver api/uploadFile.js) no
+// momento em que foi selecionado, então aqui só serializamos o link.
+//
+// O "submissionId" é o mesmo id numérico gerado no início do preenchimento
+// (App.jsx) e usado para nomear os arquivos anexados — por isso ele é
+// recebido aqui, em vez de gerado de novo, garantindo que a linha da
+// planilha e os arquivos no Drive fiquem associados pelo mesmo número.
 //
 // O fetch usa Content-Type "text/plain" (em vez de "application/json") de
 // propósito: assim o navegador não dispara um preflight OPTIONS, que o
@@ -39,9 +44,9 @@ function serializeAnswers(answers) {
   return result
 }
 
-export async function submitAnswers(answers) {
+export async function submitAnswers(answers, submissionId) {
   const submission = {
-    id: crypto.randomUUID(),
+    id: submissionId,
     timestamp: new Date().toISOString(),
     respostas: serializeAnswers(answers),
   }

@@ -268,7 +268,7 @@ function MultiChoiceChips({ options, value, onToggle }) {
   )
 }
 
-function FileInput({ field, value, onChange }) {
+function FileInput({ field, value, onChange, submissionId }) {
   // Cada item de "files" é { name, url } depois de enviado para o Drive.
   const files = Array.isArray(value) ? value : []
   const [localError, setLocalError] = useState('')
@@ -302,7 +302,7 @@ function FileInput({ field, value, onChange }) {
     if (accepted.length === 0) return
 
     setUploading(true)
-    uploadFiles(accepted)
+    uploadFiles(accepted, { submissionId, driveFolder: field.driveFolder })
       .then((uploaded) => {
         setLocalError('')
         onChange(field.multiple ? [...files, ...uploaded] : uploaded.slice(0, 1))
@@ -353,7 +353,7 @@ function FileInput({ field, value, onChange }) {
   )
 }
 
-export default function Field({ field, value, answers, onChange, error }) {
+export default function Field({ field, value, answers, onChange, error, submissionId }) {
   const { label, type } = field
 
   function renderInput() {
@@ -480,7 +480,7 @@ export default function Field({ field, value, answers, onChange, error }) {
       }
 
       case 'file':
-        return <FileInput field={field} value={value} onChange={onChange} />
+        return <FileInput field={field} value={value} onChange={onChange} submissionId={submissionId} />
 
       default:
         return null
