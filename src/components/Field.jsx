@@ -268,6 +268,17 @@ function MultiChoiceChips({ options, value, onToggle }) {
   )
 }
 
+// Confia na extensão do nome do arquivo além do tipo MIME reportado pelo
+// navegador — alguns sistemas/navegadores relatam o MIME errado ou vazio
+// para certos formatos de vídeo, o que deixaria passar um arquivo do tipo
+// errado (ex.: vídeo no campo de exame) só checando o MIME.
+function hasAcceptedExtension(fileName, acceptAttr) {
+  if (!acceptAttr) return true
+  const extensions = acceptAttr.split(',').map((ext) => ext.trim().toLowerCase())
+  const lowerName = fileName.toLowerCase()
+  return extensions.some((ext) => lowerName.endsWith(ext))
+}
+
 function FileInput({ field, value, onChange, submissionId }) {
   // Cada item de "files" é { name, url } depois de enviado para o Drive.
   const files = Array.isArray(value) ? value : []
@@ -284,8 +295,9 @@ function FileInput({ field, value, onChange, submissionId }) {
 
     picked.forEach((file) => {
       const typeOk = !field.accept || field.accept.includes(file.type)
+      const extensionOk = hasAcceptedExtension(file.name, field.acceptAttr)
       const sizeOk = !field.maxSizeMB || file.size <= field.maxSizeMB * 1024 * 1024
-      if (!typeOk || !sizeOk) {
+      if (!typeOk || !extensionOk || !sizeOk) {
         rejected = true
         return
       }
