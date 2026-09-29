@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Country, State, City } from 'country-state-city'
-import { uploadFilesToDrive, connectGoogleDrive, isDriveConnected } from '../api/googleDrive'
+import { uploadFiles } from '../api/uploadFile'
 
 // Até 2 dígitos inteiros e 1 casa decimal (ex.: "12" ou "12,5") — suficiente
 // para idade de animal em anos, e evita entradas absurdas tipo "12.34.56".
@@ -273,19 +273,6 @@ function FileInput({ field, value, onChange }) {
   const files = Array.isArray(value) ? value : []
   const [localError, setLocalError] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [connected, setConnected] = useState(isDriveConnected())
-  const [connecting, setConnecting] = useState(false)
-
-  function handleConnect() {
-    setConnecting(true)
-    setLocalError('')
-    connectGoogleDrive()
-      .then(() => setConnected(true))
-      .catch((error) => {
-        setLocalError(error.message || 'Não foi possível conectar ao Google Drive. Tente novamente.')
-      })
-      .finally(() => setConnecting(false))
-  }
 
   function handleFiles(event) {
     const picked = Array.from(event.target.files || [])
@@ -314,16 +301,14 @@ function FileInput({ field, value, onChange }) {
 
     if (accepted.length === 0) return
 
-    // Chamada síncrona (sem "await" antes) para preservar o gesto do usuário
-    // e não deixar o navegador bloquear o popup de login do Google.
     setUploading(true)
-    uploadFilesToDrive(accepted)
+    uploadFiles(accepted)
       .then((uploaded) => {
         setLocalError('')
         onChange(field.multiple ? [...files, ...uploaded] : uploaded.slice(0, 1))
       })
       .catch((error) => {
-        setLocalError(error.message || 'Falha ao enviar o arquivo para o Google Drive. Tente novamente.')
+        setLocalError(error.message || 'Falha ao enviar o arquivo. Tente novamente.')
       })
       .finally(() => setUploading(false))
   }
@@ -334,26 +319,14 @@ function FileInput({ field, value, onChange }) {
 
   return (
     <div className="file-field">
-      {!connected ? (
-        <motion.button
-          type="button"
-          className="nav-button primary drive-connect-button"
-          onClick={handleConnect}
-          disabled={connecting}
-          whileTap={{ scale: 0.97 }}
-        >
-          {connecting ? 'Conectando…' : 'Conectar ao Google Drive'}
-        </motion.button>
-      ) : (
-        <input
-          className="file-input"
-          type="file"
-          accept={field.acceptAttr}
-          multiple={!!field.multiple}
-          disabled={uploading}
-          onChange={handleFiles}
-        />
-      )}
+      <input
+        className="file-input"
+        type="file"
+        accept={field.acceptAttr}
+        multiple={!!field.multiple}
+        disabled={uploading}
+        onChange={handleFiles}
+      />
       {field.acceptLabel && (
         <p className="file-hint">
           Formatos aceitos: {field.acceptLabel}

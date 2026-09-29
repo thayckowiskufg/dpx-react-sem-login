@@ -424,12 +424,6 @@
   gap: 8px;
 }
 
-.drive-connect-button {
-  flex: none;
-  width: fit-content;
-  padding: 12px 20px;
-  min-height: 44px;
-}
 
 .file-input {
   padding: 10px 0;
