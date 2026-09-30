@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Country, State, City } from 'country-state-city'
 import { uploadFiles } from '../api/uploadFile'
 
@@ -324,44 +323,6 @@ function CityField({ value, onChange, countryName, stateName }) {
   )
 }
 
-function ChoiceButtons({ options, value, onSelect }) {
-  return (
-    <div className="choice-group">
-      {options.map((option) => (
-        <motion.button
-          key={option}
-          type="button"
-          className={`choice-button${value === option ? ' selected' : ''}`}
-          onClick={() => onSelect(option)}
-          whileTap={{ scale: 0.96 }}
-        >
-          {option}
-        </motion.button>
-      ))}
-    </div>
-  )
-}
-
-function MultiChoiceChips({ options, value, onToggle }) {
-  const selected = Array.isArray(value) ? value : []
-
-  return (
-    <div className="choice-group">
-      {options.map((option) => (
-        <motion.button
-          key={option}
-          type="button"
-          className={`choice-button${selected.includes(option) ? ' selected' : ''}`}
-          onClick={() => onToggle(option)}
-          whileTap={{ scale: 0.96 }}
-        >
-          {option}
-        </motion.button>
-      ))}
-    </div>
-  )
-}
-
 // Confia na extensão do nome do arquivo além do tipo MIME reportado pelo
 // navegador — alguns sistemas/navegadores relatam o MIME errado ou vazio
 // para certos formatos de vídeo, o que deixaria passar um arquivo do tipo
@@ -565,30 +526,29 @@ export default function Field({ field, value, answers, onChange, error, submissi
         )
 
       case 'radio':
-        return <ChoiceButtons options={field.options} value={value} onSelect={onChange} />
+        return (
+          <LocationSelect
+            placeholder={{ enabled: 'Selecione uma opção', disabled: 'Selecione uma opção' }}
+            options={field.options}
+            value={value}
+            onChange={onChange}
+          />
+        )
 
       case 'multiselect': {
         // Apesar do nome (mantido por compatibilidade com o schema e a
-        // planilha), só é permitido selecionar uma alternativa por vez.
-        // Com mais de 5 opções, um dropdown é mais fácil de navegar do que
-        // uma grade de chips — mesma lógica usada no campo de cidade.
+        // planilha), só é permitido selecionar uma alternativa por vez —
+        // por isso também vira um dropdown, igual ao campo de cidade,
+        // ocupando menos espaço vertical que uma grade de chips.
         const selected = Array.isArray(value) ? value : []
-
-        if (field.options.length > 5) {
-          return (
-            <LocationSelect
-              placeholder={{ enabled: 'Selecione uma opção', disabled: 'Selecione uma opção' }}
-              options={field.options}
-              value={selected[0]}
-              onChange={(option) => onChange(option ? [option] : [])}
-            />
-          )
-        }
-
-        function toggle(option) {
-          onChange(selected.includes(option) ? [] : [option])
-        }
-        return <MultiChoiceChips options={field.options} value={selected} onToggle={toggle} />
+        return (
+          <LocationSelect
+            placeholder={{ enabled: 'Selecione uma opção', disabled: 'Selecione uma opção' }}
+            options={field.options}
+            value={selected[0]}
+            onChange={(option) => onChange(option ? [option] : [])}
+          />
+        )
       }
 
       case 'file':
