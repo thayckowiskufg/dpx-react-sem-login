@@ -26,8 +26,23 @@ function formatAge(value) {
   return parts.join(' e ')
 }
 
+function formatDuration(value) {
+  const dias = value.dias ?? 0
+  const horas = value.horas ?? 0
+  const minutos = value.minutos ?? 0
+  const parts = []
+  if (dias > 0) parts.push(`${dias} dia${dias === 1 ? '' : 's'}`)
+  if (horas > 0) parts.push(`${horas}h`)
+  if (minutos > 0 || (dias === 0 && horas === 0)) parts.push(`${minutos}min`)
+  return parts.join(' ')
+}
+
 function isAgeValue(value) {
   return value && typeof value === 'object' && !Array.isArray(value) && 'anos' in value && 'meses' in value
+}
+
+function isDurationValue(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) && 'dias' in value && 'horas' in value && 'minutos' in value
 }
 
 function serializeAnswers(answers) {
@@ -37,6 +52,8 @@ function serializeAnswers(answers) {
       result[key] = value.map((file) => `${file.name}: ${file.url}`)
     } else if (isAgeValue(value)) {
       result[key] = formatAge(value)
+    } else if (isDurationValue(value)) {
+      result[key] = formatDuration(value)
     } else {
       result[key] = value
     }

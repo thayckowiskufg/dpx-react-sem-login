@@ -29,6 +29,8 @@ import { DOG_BREEDS } from './breeds'
 //                  guardado como { anos, meses }
 //   count       -> seletor de rolagem (wheel picker) de uma quantidade
 //                  inteira; tem "max" (limite do seletor)
+//   duration    -> seletor de rolagem (wheel picker) de Dias + Horas +
+//                  Minutos; valor guardado como { dias, horas, minutos }
 //
 // Um campo pode ter "condition": { field, equals } ou { field, in: [...] }
 // indicando que só deve aparecer (e ser exigido) quando outro campo já
@@ -295,7 +297,7 @@ export const sections = [
       {
         id: 'tempo_retorno_normal',
         label: 'Em caso de alterações após o episódio, quanto tempo o animal leva para retornar completamente ao comportamento habitual?',
-        type: 'text',
+        type: 'duration',
       },
       { id: 'data_ultimo_episodio', label: 'Data do último episódio', type: 'date', required: true },
       {

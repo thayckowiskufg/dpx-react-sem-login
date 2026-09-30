@@ -61,6 +61,18 @@ function formatAge(value) {
   return parts.join(' e ')
 }
 
+function formatDuration(value) {
+  if (!value || typeof value !== 'object') return ''
+  const dias = value.dias ?? 0
+  const horas = value.horas ?? 0
+  const minutos = value.minutos ?? 0
+  const parts = []
+  if (dias > 0) parts.push(`${dias} dia${dias === 1 ? '' : 's'}`)
+  if (horas > 0) parts.push(`${horas}h`)
+  if (minutos > 0 || (dias === 0 && horas === 0)) parts.push(`${minutos}min`)
+  return parts.join(' ')
+}
+
 function fieldError(field, answers) {
   if (!isVisible(field, answers)) return null
   const value = answers[field.id]
@@ -360,6 +372,7 @@ function formatAnswer(field, value) {
     return files.map((file) => file.name).join(', ')
   }
   if (field.type === 'age') return formatAge(value)
+  if (field.type === 'duration') return formatDuration(value)
   if (Array.isArray(value)) return value.join(', ')
   return String(value)
 }

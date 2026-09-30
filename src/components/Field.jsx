@@ -146,6 +146,63 @@ function AgeField({ field, value, onChange }) {
   )
 }
 
+const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => i)
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i)
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i)
+
+function formatDurationSummary(dias, horas, minutos) {
+  const parts = []
+  if (dias > 0) parts.push(`${dias} dia${dias === 1 ? '' : 's'}`)
+  if (horas > 0) parts.push(`${horas}h`)
+  if (minutos > 0 || (dias === 0 && horas === 0)) parts.push(`${minutos}min`)
+  return parts.join(' ')
+}
+
+function DurationField({ value, onChange }) {
+  const [expanded, setExpanded] = useState(false)
+  const dias = value?.dias ?? 0
+  const horas = value?.horas ?? 0
+  const minutos = value?.minutos ?? 0
+
+  if (!expanded) {
+    return (
+      <button type="button" className="age-summary" onClick={() => setExpanded(true)}>
+        <span>{formatDurationSummary(dias, horas, minutos)}</span>
+        <span className="age-summary-edit">Alterar</span>
+      </button>
+    )
+  }
+
+  return (
+    <div className="age-field">
+      <div className="age-wheel-group">
+        <div className="wheel-highlight-pill" style={{ height: WHEEL_ITEM_HEIGHT }} />
+        <div className="wheel-column">
+          <WheelColumn values={DAY_OPTIONS} selected={dias} onSelect={(next) => onChange({ dias: next, horas, minutos })} />
+        </div>
+        <span className="age-wheel-label" style={{ height: WHEEL_ITEM_HEIGHT, lineHeight: `${WHEEL_ITEM_HEIGHT}px` }}>
+          dias
+        </span>
+        <div className="wheel-column">
+          <WheelColumn values={HOUR_OPTIONS} selected={horas} onSelect={(next) => onChange({ dias, horas: next, minutos })} />
+        </div>
+        <span className="age-wheel-label" style={{ height: WHEEL_ITEM_HEIGHT, lineHeight: `${WHEEL_ITEM_HEIGHT}px` }}>
+          horas
+        </span>
+        <div className="wheel-column">
+          <WheelColumn values={MINUTE_OPTIONS} selected={minutos} onSelect={(next) => onChange({ dias, horas, minutos: next })} />
+        </div>
+        <span className="age-wheel-label" style={{ height: WHEEL_ITEM_HEIGHT, lineHeight: `${WHEEL_ITEM_HEIGHT}px` }}>
+          min
+        </span>
+      </div>
+      <button type="button" className="age-done-button" onClick={() => setExpanded(false)}>
+        Concluído
+      </button>
+    </div>
+  )
+}
+
 const COUNT_OPTIONS_CACHE = {}
 function getCountOptions(max) {
   if (!COUNT_OPTIONS_CACHE[max]) {
@@ -439,6 +496,9 @@ export default function Field({ field, value, answers, onChange, error, submissi
 
       case 'count':
         return <CountField field={field} value={value} onChange={onChange} />
+
+      case 'duration':
+        return <DurationField value={value} onChange={onChange} />
 
       case 'select':
         return (
