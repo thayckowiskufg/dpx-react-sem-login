@@ -146,6 +146,43 @@ function AgeField({ field, value, onChange }) {
   )
 }
 
+const COUNT_OPTIONS_CACHE = {}
+function getCountOptions(max) {
+  if (!COUNT_OPTIONS_CACHE[max]) {
+    COUNT_OPTIONS_CACHE[max] = Array.from({ length: max + 1 }, (_, i) => i)
+  }
+  return COUNT_OPTIONS_CACHE[max]
+}
+
+function CountField({ field, value, onChange }) {
+  const [expanded, setExpanded] = useState(false)
+  const count = value ?? 0
+  const options = useMemo(() => getCountOptions(field.max ?? 100), [field.max])
+
+  if (!expanded) {
+    return (
+      <button type="button" className="age-summary" onClick={() => setExpanded(true)}>
+        <span>{count}</span>
+        <span className="age-summary-edit">Alterar</span>
+      </button>
+    )
+  }
+
+  return (
+    <div className="age-field">
+      <div className="age-wheel-group">
+        <div className="wheel-highlight-pill" style={{ height: WHEEL_ITEM_HEIGHT }} />
+        <div className="wheel-column">
+          <WheelColumn values={options} selected={count} onSelect={onChange} />
+        </div>
+      </div>
+      <button type="button" className="age-done-button" onClick={() => setExpanded(false)}>
+        Concluído
+      </button>
+    </div>
+  )
+}
+
 function CountryField({ value, onChange }) {
   const options = useMemo(() => ALL_COUNTRIES.map((country) => country.name), [])
   return (
@@ -399,6 +436,9 @@ export default function Field({ field, value, answers, onChange, error, submissi
 
       case 'age':
         return <AgeField field={field} value={value} onChange={onChange} />
+
+      case 'count':
+        return <CountField field={field} value={value} onChange={onChange} />
 
       case 'select':
         return (

@@ -27,6 +27,8 @@ import { DOG_BREEDS } from './breeds'
 //   select      -> select simples com lista de opções fixa (ex.: raça do animal)
 //   age         -> seletor de rolagem (wheel picker) de Anos + Meses; valor
 //                  guardado como { anos, meses }
+//   count       -> seletor de rolagem (wheel picker) de uma quantidade
+//                  inteira; tem "max" (limite do seletor)
 //
 // Um campo pode ter "condition": { field, equals } ou { field, in: [...] }
 // indicando que só deve aparecer (e ser exigido) quando outro campo já
@@ -65,7 +67,14 @@ export const sections = [
         id: 'sexo',
         label: 'Sexo',
         type: 'radio',
-        options: ['Macho castrado', 'Macho inteiro', 'Fêmea castrada', 'Fêmea inteira'],
+        options: ['Macho', 'Fêmea'],
+        required: true,
+      },
+      {
+        id: 'status_reprodutivo',
+        label: 'Status reprodutivo',
+        type: 'radio',
+        options: ['Castrado', 'Não castrado', 'Não sabe informar'],
         required: true,
       },
       {
@@ -74,7 +83,7 @@ export const sections = [
         type: 'age',
         maxYears: 30,
         maxField: 'idade_atual',
-        condition: { field: 'sexo', in: ['Macho castrado', 'Fêmea castrada'] },
+        condition: { field: 'status_reprodutivo', equals: 'Castrado' },
         required: true,
       },
       { id: 'idade_atual', label: 'Idade atual do paciente', type: 'age', maxYears: 30, required: true },
@@ -93,47 +102,39 @@ export const sections = [
         required: true,
       },
       {
+        id: 'numero_episodios_total',
+        label: 'Quantos episódios já foram observados até hoje?',
+        type: 'count',
+        max: 500,
+        required: true,
+      },
+      {
         id: 'duracao_media',
         label: 'Duração média dos episódios',
         type: 'radio',
-        options: ['30 segundos', '1 minuto', '2 minutos', '5 minutos', '10 minutos', 'Não sei'],
+        options: ['Menos de 1 minuto', '1 a 5 minutos', '5 a 10 minutos', '10 a 30 minutos', 'Mais de 30 minutos', 'Não sabe informar'],
         required: true,
       },
       {
         id: 'frequencia_media',
         label: 'Frequência média dos episódios',
         type: 'radio',
-        options: ['Diária', 'Semanal', 'Mensal', 'Semestral', 'Anual', 'Não sei'],
+        options: ['Diariamente', 'Semanalmente', 'Mensalmente', 'Semestralmente', 'Anualmente', 'Não sabe informar'],
         required: true,
       },
       {
-        id: 'crises_mesmo_dia',
-        label: 'Já teve mais de uma crise no mesmo dia?',
+        id: 'periodicidade_diaria',
+        label: 'Em caso de episódios diários, qual a periodicidade?',
         type: 'radio',
-        options: ['Não', 'Sim, duas vezes', 'Sim, três a cinco vezes', 'Sim, seis a dez vezes', 'Sim, mais de dez vezes', 'Não sei'],
-        required: true,
-      },
-      {
-        id: 'periodo_ocorrencia',
-        label: 'Período de ocorrência dos episódios',
-        type: 'radio',
-        options: ['Manhã', 'Tarde', 'Noite', 'Aleatório', 'Não sei'],
+        options: ['1 vez ao dia', '2 vezes ao dia', '3 vezes ao dia', '4 vezes ao dia', '5 vezes ao dia', 'Mais de 5 vezes ao dia', 'Não sabe informar'],
+        condition: { field: 'frequencia_media', equals: 'Diariamente' },
         required: true,
       },
       {
         id: 'fatores_desencadeantes',
         label: 'Fatores desencadeantes do episódio',
         type: 'multiselect',
-        options: [
-          'Extremos climáticos',
-          'Mudança de posição (levantar, deitar)',
-          'Estresse',
-          'Excitação',
-          'Exercício',
-          'Ruídos altos',
-          'Luzes intensas',
-          'Não sei',
-        ],
+        options: ['Alimentação', 'Calor', 'Estresse', 'Excitação', 'Exercício', 'Não sabe informar'],
       },
       {
         id: 'frequencia_fatores_precedem',
@@ -141,10 +142,9 @@ export const sections = [
         type: 'radio',
         options: [
           'Em todos os episódios',
-          'Em alguns, mais da metade',
-          'Menos da metade da quantidade de episódios',
-          'Ocorreu uma única vez',
-          'Não sei',
+          'Em mais da metade dos episódios',
+          'Em menos da metade dos episódios',
+          'Não sabe informar',
         ],
         required: true,
       },
@@ -152,14 +152,28 @@ export const sections = [
         id: 'dieta_inicio_episodios',
         label: 'Dieta do animal quando os episódios começaram',
         type: 'radio',
-        options: ['Dieta sem grãos', 'Dieta com glúten', 'Não sei'],
+        options: ['Dieta comercial com grãos', 'Dieta comercial sem grãos', 'Dieta caseira', 'Dieta natural', 'Não sabe informar'],
+        required: true,
+      },
+      {
+        id: 'habito_petiscos',
+        label: 'Você tem o hábito de oferecer petiscos/alimento adicional ao seu cão?',
+        type: 'radio',
+        options: ['Sim', 'Não', 'Não sabe informar'],
         required: true,
       },
       {
         id: 'episodios_compativeis_epilepsia',
-        label: 'O animal já apresentou episódios diagnosticados ou compatíveis com crise epiléptica?',
+        label: 'Seu cão já apresentou convulsão?',
         type: 'radio',
-        options: SIM_NAO,
+        options: ['Sim', 'Não', 'Não sabe informar'],
+        required: true,
+      },
+      {
+        id: 'consegue_prever',
+        label: 'Você consegue prever os episódios?',
+        type: 'radio',
+        options: ['Sim', 'Não', 'Não sabe informar'],
         required: true,
       },
       {
@@ -198,7 +212,7 @@ export const sections = [
         id: 'frequencia_sinais_precedem',
         label: 'Com que frequência essas atitudes precedem os episódios',
         type: 'radio',
-        options: ['Sempre', 'Frequentemente, mas não sempre', 'Poucas vezes', 'Não sei'],
+        options: ['Sempre', 'Frequentemente, mas não sempre', 'Poucas vezes', 'Não sabe informar'],
         required: true,
       },
       {
@@ -247,13 +261,6 @@ export const sections = [
         label: 'Estado mental do paciente durante os episódios',
         type: 'radio',
         options: ['Estado normal', 'Estado alterado', 'Perda', 'Não sei dizer'],
-        required: true,
-      },
-      {
-        id: 'historico_familiar_dpx',
-        label: 'Apresenta histórico familiar de Discinesia Paroxística na família',
-        type: 'radio',
-        options: ['Sim', 'Não', 'Não sei informar'],
         required: true,
       },
       {
@@ -329,7 +336,7 @@ export const sections = [
     fields: [
       {
         id: 'usou_medicamento_antiepileptico',
-        label: 'Foram usados medicamentos anti-epilépticos?',
+        label: 'Foram usados fármacos anti crises epilépticas?',
         type: 'radio',
         options: SIM_NAO,
         required: true,
