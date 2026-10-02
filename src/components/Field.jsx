@@ -391,7 +391,7 @@ function FileInput({ field, value, onChange, submissionId }) {
         type="file"
         accept={field.acceptAttr}
         multiple={!!field.multiple}
-        disabled={uploading}
+        disabled={uploading || !submissionId}
         onChange={handleFiles}
       />
       {field.acceptLabel && (
@@ -400,6 +400,7 @@ function FileInput({ field, value, onChange, submissionId }) {
           {field.maxSizeMB ? ` · até ${field.maxSizeMB}MB por arquivo` : ''}
         </p>
       )}
+      {!submissionId && <p className="file-hint">Carregando...</p>}
       {uploading && <p className="file-hint">Enviando para o Google Drive…</p>}
       {localError && <p className="field-error">{localError}</p>}
       {files.length > 0 && (

@@ -61,6 +61,25 @@ function serializeAnswers(answers) {
   return result
 }
 
+// Pede ao Apps Script o próximo número sequencial (1, 2, 3...), guardado num
+// contador no próprio script. Chamado uma vez, assim que o formulário abre,
+// pra já existir um ID pequeno e em ordem antes de qualquer anexo ser
+// enviado (o nome do arquivo no Drive usa esse mesmo número).
+export async function getNextSubmissionId() {
+  const response = await fetch(SHEET_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ tipo: 'gerar_id' }),
+  })
+
+  if (!response.ok) throw new Error(`Falha ao gerar ID (status ${response.status}).`)
+
+  const data = await response.json()
+  if (!data.id) throw new Error(data.erro || 'Não foi possível gerar o ID.')
+
+  return String(data.id)
+}
+
 export async function submitAnswers(answers, submissionId) {
   const submission = {
     id: submissionId,

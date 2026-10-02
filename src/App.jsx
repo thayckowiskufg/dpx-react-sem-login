@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import ProgressBar from './components/ProgressBar'
 import Field from './components/Field'
 import { sections } from './data/schema'
-import { submitAnswers } from './api/submitAnswers'
+import { submitAnswers, getNextSubmissionId } from './api/submitAnswers'
 import './App.css'
 
 const ALL_FIELDS = sections.flatMap((section) => section.fields)
@@ -12,10 +12,12 @@ const STEPS = [...sections.map((section) => ({ kind: 'section', section })), { k
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// ID só numérico (timestamp + 3 dígitos aleatórios), gerado uma vez por
-// preenchimento — usado tanto na planilha quanto para nomear os arquivos
-// anexados, associando cada arquivo à resposta que o enviou.
-function generateSubmissionId() {
+// ID numérico sequencial (1, 2, 3...), pedido ao Apps Script assim que o
+// formulário abre — usado na planilha e para nomear os arquivos anexados,
+// associando cada arquivo à resposta que o enviou. Se o pedido falhar (sem
+// internet no instante do carregamento, por exemplo), cai num ID de reserva
+// baseado no horário, só pra não travar o preenchimento.
+function generateFallbackId() {
   const random = Math.floor(Math.random() * 900) + 100
   return `${Date.now()}${random}`
 }
@@ -141,7 +143,13 @@ export default function App() {
   const [answers, setAnswers] = useState({})
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(false)
-  const [submissionId] = useState(generateSubmissionId)
+  const [submissionId, setSubmissionId] = useState(null)
+
+  useEffect(() => {
+    getNextSubmissionId()
+      .then(setSubmissionId)
+      .catch(() => setSubmissionId(generateFallbackId()))
+  }, [])
   const [theme, setTheme] = useState(() => localStorage.getItem('dpx-theme') || 'light')
   const [fontScale, setFontScale] = useState(() => Number(localStorage.getItem('dpx-font-scale')) || 1)
 
@@ -228,7 +236,7 @@ export default function App() {
   }
 
   async function handleConfirm() {
-    await submitAnswers(answers, submissionId)
+    await submitAnswers(answers, submissionId ?? generateFallbackId())
     setDone(true)
   }
 
