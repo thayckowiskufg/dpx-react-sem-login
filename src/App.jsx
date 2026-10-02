@@ -27,6 +27,19 @@ function isVisible(field, answers) {
   return currentValue === field.condition.equals
 }
 
+// Campos com "dynamicLabel"/"dynamicOptions" recalculam o texto/as opções a
+// cada resposta (ex.: pergunta de periodicidade, que muda com a frequência
+// escolhida antes). Isso resolve essas funções num field "normal" antes de
+// passar pro componente de exibição.
+function resolveDynamicField(field, answers) {
+  if (!field.dynamicLabel && !field.dynamicOptions) return field
+  return {
+    ...field,
+    label: field.dynamicLabel ? field.dynamicLabel(answers) : field.label,
+    options: field.dynamicOptions ? field.dynamicOptions(answers) : field.options,
+  }
+}
+
 function hasValue(value) {
   if (value === undefined || value === null) return false
   if (typeof value === 'string') return value.trim() !== ''
@@ -175,6 +188,14 @@ export default function App() {
       // ALL_FIELDS segue a ordem do schema, então um passe único já resolve a cadeia.
       ALL_FIELDS.forEach((field) => {
         if (field.dependsOn && next[field.dependsOn] === undefined && next[field.id] !== undefined) {
+          delete next[field.id]
+        }
+      })
+      // Limpa a resposta de campos com opções dinâmicas quando o campo do qual
+      // elas dependem muda — a resposta antiga pode não existir mais no novo
+      // conjunto de opções (ex.: "2 vezes ao dia" depois de trocar pra "Semanalmente").
+      ALL_FIELDS.forEach((field) => {
+        if (field.dynamicOptions && field.condition?.field === fieldId) {
           delete next[field.id]
         }
       })
@@ -339,7 +360,7 @@ function Screen({ section, fields, answers, errors, onChange, onNext, onBack, su
       {fields.map((field) => (
         <Field
           key={field.id}
-          field={field}
+          field={resolveDynamicField(field, answers)}
           value={answers[field.id]}
           answers={answers}
           error={errors[field.id]}
@@ -390,11 +411,14 @@ function ReviewSection({ title, fields, answers, onEdit }) {
           Editar
         </button>
       </div>
-      {respondidos.map((field) => (
-        <p key={field.id} className="review-item">
-          <strong>{field.label}:</strong> {formatAnswer(field, answers[field.id])}
-        </p>
-      ))}
+      {respondidos.map((field) => {
+        const resolved = resolveDynamicField(field, answers)
+        return (
+          <p key={field.id} className="review-item">
+            <strong>{resolved.label}:</strong> {formatAnswer(resolved, answers[field.id])}
+          </p>
+        )
+      })}
     </div>
   )
 }

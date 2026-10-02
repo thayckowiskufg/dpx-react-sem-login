@@ -49,8 +49,23 @@ import { DOG_BREEDS } from './breeds'
 // Um campo "age" tem "maxYears" (limite do seletor, em anos) e pode ter
 // "maxField" (mesma ideia do "number", mas a comparação é feita em meses
 // totais: anos*12 + meses).
+//
+// Um campo pode ter "dynamicLabel(answers)" e/ou "dynamicOptions(answers)" —
+// funções que recalculam o label/as opções a cada mudança nas respostas (ex.:
+// a pergunta de periodicidade muda a palavra "diários/semanais/..." e as
+// opções de acordo com a frequência escolhida na pergunta anterior).
 
 export const SIM_NAO = ['Sim', 'Não']
+
+// Usado pela pergunta "periodicidade" (dinâmica): o enunciado e as opções
+// mudam de acordo com a resposta de "frequência média dos episódios".
+const PERIODICIDADE_POR_FREQUENCIA = {
+  Diariamente: { adjetivo: 'diários', preposicao: 'ao dia' },
+  Semanalmente: { adjetivo: 'semanais', preposicao: 'por semana' },
+  Mensalmente: { adjetivo: 'mensais', preposicao: 'por mês' },
+  Semestralmente: { adjetivo: 'semestrais', preposicao: 'no semestre' },
+  Anualmente: { adjetivo: 'anuais', preposicao: 'no ano' },
+}
 
 export const sections = [
   {
@@ -129,7 +144,17 @@ export const sections = [
         label: 'Em caso de episódios diários, qual a periodicidade?',
         type: 'radio',
         options: ['1 vez ao dia', '2 vezes ao dia', '3 vezes ao dia', '4 vezes ao dia', '5 vezes ao dia', 'Mais de 5 vezes ao dia', 'Não sabe informar'],
-        condition: { field: 'frequencia_media', equals: 'Diariamente' },
+        condition: { field: 'frequencia_media', in: ['Diariamente', 'Semanalmente', 'Mensalmente', 'Semestralmente', 'Anualmente'] },
+        dynamicLabel: (answers) => {
+          const info = PERIODICIDADE_POR_FREQUENCIA[answers.frequencia_media]
+          return `Em caso de episódios ${info ? info.adjetivo : '...'}, qual a periodicidade?`
+        },
+        dynamicOptions: (answers) => {
+          const info = PERIODICIDADE_POR_FREQUENCIA[answers.frequencia_media]
+          if (!info) return ['Não sabe informar']
+          return [1, 2, 3, 4, 5].map((n) => `${n} ve${n === 1 ? 'z' : 'zes'} ${info.preposicao}`)
+            .concat([`Mais de 5 vezes ${info.preposicao}`, 'Não sabe informar'])
+        },
         required: true,
       },
       {
